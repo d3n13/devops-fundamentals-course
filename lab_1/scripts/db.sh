@@ -2,6 +2,7 @@
 
 readonly USERS_DB_FILE="../data/users.db";
 readonly USERS_BACKUP_FOLDER="../data/backup/";
+readonly BACKUP_FILENAME_SUFFIX='-users.db.backup';
 
 printHelp (){
     echo "Commands: add, backup, restore, find, list, help";
@@ -68,16 +69,31 @@ list(){
     esac
 }
 
-getBackupName(){
-    echo $(date '+%Y-%m-%d')'-users.db.backup';
+generateBackupName(){
+    echo $(date '+%Y-%m-%d')$BACKUP_FILENAME_SUFFIX;
 }
 
 backup(){
-    cp $USERS_DB_FILE $USERS_BACKUP_FOLDER`getBackupName`
+    local backupName=`generateBackupName`;
+    cp $USERS_DB_FILE $USERS_BACKUP_FOLDER$backupName;
+    echo "Saved to $backupName";
+}
+
+findLastBackupName(){
+    local lastBackupName=`ls -r $USERS_BACKUP_FOLDER | head -1`;
+    echo $lastBackupName;
 }
 
 restore(){
-    echo "restore"
+    local lastBackupName=`findLastBackupName`;
+
+    if [[ $lastBackupName == "" ]]; then
+        echo "No backups found";
+        return 2;
+    fi
+
+    cp $USERS_BACKUP_FOLDER$lastBackupName $USERS_DB_FILE;
+    echo "Restored from $lastBackupName";
 }
 
 printNotSupportedMessage(){
