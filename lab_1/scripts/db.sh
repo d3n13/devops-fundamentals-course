@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 readonly USERS_DB_FILE="../data/users.db";
+readonly USERS_BACKUP_FOLDER="../data/backup/";
 
 printHelp (){
     echo "Commands: add, backup, restore, find, list, help";
@@ -67,8 +68,12 @@ list(){
     esac
 }
 
+getBackupName(){
+    echo $(date '+%Y-%m-%d')'-users.db.backup';
+}
+
 backup(){
-    echo "backup"
+    cp $USERS_DB_FILE $USERS_BACKUP_FOLDER`getBackupName`
 }
 
 restore(){
