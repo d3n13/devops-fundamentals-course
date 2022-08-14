@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+readonly USERS_DB_FILE="../data/users.db";
+
 printHelp (){
     echo "Commands: add, backup, restore, find, list, help";
 
@@ -34,8 +36,22 @@ printHelp (){
     echo "Show available commands";
 }
 
+saveUser(){
+    echo "$1:$2" >> $USERS_DB_FILE;
+}
+
 add(){
-    echo "add"
+    until [[ $username =~ ^[[:alnum:]]+$ ]]; do
+        read -p "Please provide a username (Must be alphanumeric): " username;
+    done
+
+    until [[ $role =~ ^[[:alnum:]]+$ ]]; do
+        read -p "Please type in $username's role (Must be alphanumeric): " role;
+    done
+    
+    saveUser $username $role;
+
+    echo "User $username with role $role was added.";
 }
 
 find(){
