@@ -39,7 +39,7 @@ printHelp (){
 }
 
 saveUser(){
-    echo "$1:$2" >> $USERS_DB_FILE;
+    echo "$1, $2" >> $USERS_DB_FILE;
 }
 
 add(){
