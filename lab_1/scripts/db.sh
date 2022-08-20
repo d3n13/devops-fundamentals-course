@@ -4,6 +4,8 @@ readonly USERS_DB_FILE="../data/users.db";
 readonly USERS_BACKUP_FOLDER="../data/backup/";
 readonly BACKUP_FILENAME_SUFFIX='-users.db.backup';
 
+readonly DB_DIVIDER=', ';
+
 printHelp (){
     echo "Commands: add, backup, restore, find, list, help";
 
@@ -39,7 +41,7 @@ printHelp (){
 }
 
 saveUser(){
-    echo "$1, $2" >> $USERS_DB_FILE;
+    echo "$1$DB_DIVIDER$2" >> $USERS_DB_FILE;
 }
 
 add(){
@@ -47,17 +49,55 @@ add(){
         read -p "Please provide a username (Must be alphanumeric): " username;
     done
 
+    local amount=`countUsers $username`;
+
+    if [ $amount -gt 0 ]; then
+        local user=`searchUser $username`;
+        echo "This user already exists:";
+        echo "$user";
+
+        while true; do
+            read -p "Do you want to create it anyway? (y/n)" yn
+            case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) exit;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done  
+    fi
+
     until [[ $role =~ ^[[:alnum:]]+$ ]]; do
         read -p "Please type in $username's role (Must be alphanumeric): " role;
     done
-    
+
     saveUser $username $role;
 
     echo "User $username with role $role was added.";
 }
 
+countUsers(){
+    grep -c "$1$DB_DIVIDER" $USERS_DB_FILE;
+}
+
+searchUser(){
+    grep "$1$DB_DIVIDER" $USERS_DB_FILE;
+}
+
 find(){
-    echo "find"
+    until [[ $username =~ ^[[:alnum:]]+$ ]]; do
+        read -p "Please provide a username (Must be alphanumeric): " username;
+    done
+
+    local amount=`countUsers $username`;
+
+    if [ $amount -eq 0 ]; then
+        echo "User was not found";
+        exit;
+    fi
+
+    local result=`searchUser $username`;
+
+    echo  "$result";
 }
 
 list(){
@@ -89,7 +129,7 @@ restore(){
 
     if [[ $lastBackupName == "" ]]; then
         echo "No backups found";
-        return 2;
+        exit;
     fi
 
     cp $USERS_BACKUP_FOLDER$lastBackupName $USERS_DB_FILE;
