@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 
-readonly USERS_DB_FILE="../data/users.db";
+readonly USERS_DB_FILENAME='users.db';
+readonly USERS_DB_FILE_PATH="../data/$USERS_DB_FILENAME";
 readonly USERS_BACKUP_FOLDER="../data/backup/";
-readonly BACKUP_FILENAME_SUFFIX='-users.db.backup';
+readonly BACKUP_FILENAME_SUFFIX="-$USERS_DB_FILENAME.backup";
 
 readonly DB_DIVIDER=', ';
+
+createDBFile(){
+    touch "$USERS_DB_FILE_PATH";
+    echo "$USERS_DB_FILENAME was generated."
+}
+
+ensureDBFileExists(){
+    if [ ! -f "$USERS_DB_FILE_PATH" ]; then
+        while true; do
+            read -p "Required $USERS_DB_FILENAME file does not exist. Would you like to generate it first? (y/n)" yn
+            case $yn in
+                [Yy]* ) createDBFile; break;;
+                [Nn]* ) 
+                    echo "Failed: No $USERS_DB_FILENAME file exists."
+                    exit;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
+}
 
 printHelp (){
     echo "Commands: add, backup, restore, find, list, help";
@@ -41,10 +62,13 @@ printHelp (){
 }
 
 saveUser(){
-    echo "$1$DB_DIVIDER$2" >> $USERS_DB_FILE;
+    echo "$1$DB_DIVIDER$2" >> $USERS_DB_FILE_PATH;
 }
 
 add(){
+
+    ensureDBFileExists;
+
     until [[ $username =~ ^[[:alnum:]]+$ ]]; do
         read -p "Please provide a username (Must be alphanumeric): " username;
     done
@@ -76,14 +100,17 @@ add(){
 }
 
 countUsers(){
-    grep -c "$1$DB_DIVIDER" $USERS_DB_FILE;
+    grep -c "$1$DB_DIVIDER" $USERS_DB_FILE_PATH;
 }
 
 searchUser(){
-    grep "$1$DB_DIVIDER" $USERS_DB_FILE;
+    grep "$1$DB_DIVIDER" $USERS_DB_FILE_PATH;
 }
 
 find(){
+
+    ensureDBFileExists;
+
     until [[ $username =~ ^[[:alnum:]]+$ ]]; do
         read -p "Please provide a username (Must be alphanumeric): " username;
     done
@@ -101,6 +128,9 @@ find(){
 }
 
 list(){
+
+    ensureDBFileExists;
+
     echo "list";
 
     case $1 in 
@@ -114,8 +144,10 @@ generateBackupName(){
 }
 
 backup(){
+    ensureDBFileExists;
+
     local backupName=`generateBackupName`;
-    cp $USERS_DB_FILE $USERS_BACKUP_FOLDER$backupName;
+    cp $USERS_DB_FILE_PATH $USERS_BACKUP_FOLDER$backupName;
     echo "Saved to $backupName";
 }
 
@@ -132,7 +164,7 @@ restore(){
         exit;
     fi
 
-    cp $USERS_BACKUP_FOLDER$lastBackupName $USERS_DB_FILE;
+    cp $USERS_BACKUP_FOLDER$lastBackupName $USERS_DB_FILE_PATH;
     echo "Restored from $lastBackupName";
 }
 
