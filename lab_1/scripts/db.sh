@@ -66,7 +66,6 @@ saveUser(){
 }
 
 add(){
-
     ensureDBFileExists;
 
     until [[ $username =~ ^[[:alnum:]]+$ ]]; do
@@ -108,7 +107,6 @@ searchUser(){
 }
 
 find(){
-
     ensureDBFileExists;
 
     until [[ $username =~ ^[[:alnum:]]+$ ]]; do
@@ -128,14 +126,13 @@ find(){
 }
 
 list(){
-
     ensureDBFileExists;
 
-    echo "list";
+    local entries=`nl -w2 -s'. ' $USERS_DB_FILE_PATH`;
 
     case $1 in 
-        --inverse) echo 'inverse';;
-        *) printNotSupportedMessage $1;;
+        --inverse) echo "$entries" | tac;;
+        *) echo "$entries";;
     esac
 }
 
@@ -166,10 +163,6 @@ restore(){
 
     cp $USERS_BACKUP_FOLDER$lastBackupName $USERS_DB_FILE_PATH;
     echo "Restored from $lastBackupName";
-}
-
-printNotSupportedMessage(){
-    echo "$1 is not supported"
 }
 
 case $1 in
